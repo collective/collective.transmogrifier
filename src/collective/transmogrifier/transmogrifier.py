@@ -96,6 +96,9 @@ class Transmogrifier(DictMixin):
     def __iter__(self):
         return iter(self._raw)
 
+    def __len__(self):
+        pass
+
 
 class Options(DictMixin):
     def __init__(self, transmogrifier, section, data):
@@ -188,6 +191,12 @@ class Options(DictMixin):
             del self._data[key]
         else:
             raise KeyError(key)
+
+    def __iter__(self):
+        pass
+
+    def __len__(self):
+        pass
 
     def keys(self):
         raw = self._raw
