@@ -36,13 +36,15 @@ class ConfigurationRegistry(object):
             id=name,
             title=title,
             description=description,
-            configuration=configuration)
+            configuration=configuration,
+        )
 
     def getConfiguration(self, id):
         return self._config_info[id].copy()
 
     def listConfigurationIds(self):
         return tuple(self._config_ids)
+
 
 configuration_registry = ConfigurationRegistry()
 
@@ -68,7 +70,7 @@ class Transmogrifier(DictMixin):
 
         # Pipeline execution
         for item in pipeline:
-            pass # discard once processed
+            pass  # discard once processed
 
     def __getitem__(self, section):
         try:
@@ -225,19 +227,27 @@ def _update_section(section, included):
         option = key.strip(' -')
         if option in keys:
             raise ValueError('Option %s specified twice', option)
-        included[option] = '\n'.join([
-            v for v in included.get(option, '').splitlines()
-            if v and v not in section[key].splitlines()])
+        included[option] = '\n'.join(
+            [
+                v
+                for v in included.get(option, '').splitlines()
+                if v and v not in section[key].splitlines()
+            ]
+        )
         del section[key]
 
     for key in add:
         option = key.strip(' +')
         if option in keys:
             raise ValueError('Option %s specified twice', option)
-        included[option] = '\n'.join([
-            v for v in
-            included.get(option, '').splitlines() + section[key].splitlines()
-            if v])
+        included[option] = '\n'.join(
+            [
+                v
+                for v in included.get(option, '').splitlines()
+                + section[key].splitlines()
+                if v
+            ]
+        )
         del section[key]
 
     included.update(section)
@@ -249,8 +259,9 @@ def _load_config(configuration_id, seen=None, **overrides):
         seen = []
     if configuration_id in seen:
         raise ValueError(
-            'Recursive configuration extends: %s (%r)' % (
-                configuration_id, seen))
+            'Recursive configuration extends: %s (%r)'
+            % (configuration_id, seen)
+        )
     seen.append(configuration_id)
 
     if ':' in configuration_id:
@@ -260,7 +271,8 @@ def _load_config(configuration_id, seen=None, **overrides):
         configuration_file = config_info['configuration']
     parser = configparser.RawConfigParser()
     parser.optionxform = str  # case sensitive
-    parser.readfp(open(configuration_file))
+    with open(configuration_file) as fp:
+        parser.readfp(fp)
 
     includes = None
     result = {}
@@ -275,7 +287,8 @@ def _load_config(configuration_id, seen=None, **overrides):
             sections = set(include.keys()) | set(result.keys())
             for section in sections:
                 result[section] = _update_section(
-                    result.get(section, {}), include.get(section, {}))
+                    result.get(section, {}), include.get(section, {})
+                )
 
     seen.pop()
 
